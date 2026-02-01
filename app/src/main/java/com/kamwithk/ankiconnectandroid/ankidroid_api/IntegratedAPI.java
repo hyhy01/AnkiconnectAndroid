@@ -179,6 +179,8 @@ public class IntegratedAPI {
                     queryChecksums.add(queryCsum);
                 }
             }
+        } finally {
+            cursor.close();
         }
 
         return queryChecksums;
