@@ -148,7 +148,15 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void startServiceBtn(View view) {
-        boolean notificationsEnabled = notificationManager.areNotificationsEnabled();
+        // areNotificationsEnabled() is only available on Android 7.0 (API 24) and above
+        boolean notificationsEnabled;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            notificationsEnabled = notificationManager.areNotificationsEnabled();
+        } else {
+            // On Android 6 and below, notifications are always enabled by default
+            notificationsEnabled = true;
+        }
+
         if (notificationsEnabled) {
             startService();
         } else {

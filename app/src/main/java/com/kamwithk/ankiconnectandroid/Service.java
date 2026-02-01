@@ -2,8 +2,11 @@ package com.kamwithk.ankiconnectandroid;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import androidx.annotation.Nullable;
@@ -22,6 +25,19 @@ public class Service extends android.app.Service {
     @Override
     public void onCreate() { // Only one time
         super.onCreate();
+
+        // Create notification channel for Android 8.0+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Ankiconnect Android",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+        }
 
         try {
             server = new Router(PORT, this);
@@ -42,7 +58,16 @@ public class Service extends android.app.Service {
             pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
 
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+        // Use appropriate builder based on Android version
+        NotificationCompat.Builder builder;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder = new NotificationCompat.Builder(this, CHANNEL_ID);
+        } else {
+            // For Android 7.1 and below, CHANNEL_ID is not used
+            builder = new NotificationCompat.Builder(this);
+        }
+
+        Notification notification = builder
                 .setContentTitle("Ankiconnect Android")
                 .setSmallIcon(R.mipmap.app_launcher)
                 .setContentIntent(pendingIntent)

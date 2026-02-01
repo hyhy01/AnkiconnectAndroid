@@ -23,10 +23,9 @@ import com.google.android.material.snackbar.Snackbar;
 import org.jsoup.internal.StringUtil;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 
 public class SettingsActivity extends AppCompatActivity {
@@ -95,7 +94,17 @@ public class SettingsActivity extends AppCompatActivity {
                 if (context == null) {
                     Toast.makeText(getContext(), "Cannot get local audio folder, as context is null.", Toast.LENGTH_LONG).show();
                 } else {
-                    String[] dirs = Arrays.stream(context.getExternalFilesDirs(null)).map(File::getAbsolutePath).map(s -> s.replace(DEFAULT_DIRECTORY_PATH, "")).toArray(String[]::new);
+                    // Convert File[] to String[] without using Stream API (not available on Android 6)
+                    File[] filesDirs = context.getExternalFilesDirs(null);
+                    List<String> dirList = new ArrayList<>();
+                    for (File dir : filesDirs) {
+                        if (dir != null) {
+                            String path = dir.getAbsolutePath();
+                            dirList.add(path.replace(DEFAULT_DIRECTORY_PATH, ""));
+                        }
+                    }
+                    String[] dirs = dirList.toArray(new String[0]);
+
                     ((ListPreference) preference).setEntries(dirs);
                     ((ListPreference) preference).setEntryValues(dirs);
 
@@ -114,10 +123,10 @@ public class SettingsActivity extends AppCompatActivity {
                     preference.setDefaultValue(DEFAULT_DIRECTORY_PATH);
                     preference.setOnPreferenceChangeListener((p, i) -> {
                         ListPreference storagePreference = findPreference("storage_location");
-                        Path fullPath = Paths.get(storagePreference.getValue(), i.toString());
+                        File fullPath = new File(storagePreference.getValue(), i.toString());
 
-                        if (!Files.exists(fullPath)){
-                            Snackbar.make(context, getView(), "Not a valid directory\n"+fullPath.toString(), Snackbar.LENGTH_LONG)
+                        if (!fullPath.exists()){
+                            Snackbar.make(getView(), "Not a valid directory\n"+fullPath.toString(), Snackbar.LENGTH_LONG)
                                     .show();
                             return false;
                         }
@@ -139,7 +148,16 @@ public class SettingsActivity extends AppCompatActivity {
                         ListPreference storageDevicePreference = findPreference("storage_location");
                         EditTextPreference storageDirPreference = findPreference("storage_dir_path");
 
-                        String[] dirs = Arrays.stream(context.getExternalFilesDirs(null)).map(File::getAbsolutePath).map(s -> s.replace(DEFAULT_DIRECTORY_PATH, "")).toArray(String[]::new);
+                        // Convert File[] to String[] without using Stream API
+                        File[] filesDirs = context.getExternalFilesDirs(null);
+                        List<String> dirList = new ArrayList<>();
+                        for (File dir : filesDirs) {
+                            if (dir != null) {
+                                String path = dir.getAbsolutePath();
+                                dirList.add(path.replace(DEFAULT_DIRECTORY_PATH, ""));
+                            }
+                        }
+                        String[] dirs = dirList.toArray(new String[0]);
 
                         storageDevicePreference.setValue(dirs[0]);
                         storageDevicePreference.setValueIndex(0);
@@ -162,7 +180,7 @@ public class SettingsActivity extends AppCompatActivity {
                         ListPreference storageDevicePreference = findPreference("storage_location");
                         EditTextPreference storageDirPreference = findPreference("storage_dir_path");
 
-                        Path fullPath = Paths.get(storageDevicePreference.getValue(), storageDirPreference.getText());
+                        File fullPath = new File(storageDevicePreference.getValue(), storageDirPreference.getText());
 
                         Toast.makeText(getContext(), "Local audio folder: " + fullPath.toString(), Toast.LENGTH_LONG).show();
 
