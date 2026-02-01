@@ -1,12 +1,15 @@
 package com.kamwithk.ankiconnectandroid;
 
 import static android.Manifest.permission.POST_NOTIFICATIONS;
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
@@ -14,13 +17,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
 import com.kamwithk.ankiconnectandroid.ankidroid_api.IntegratedAPI;
@@ -56,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String CHANNEL_ID = "ankiConnectAndroid";
     private NotificationManager notificationManager;
     private ActivityResultLauncher<String> requestPermissionLauncher;
+    private ActivityResultLauncher<String[]> storagePermissionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +90,26 @@ public class MainActivity extends AppCompatActivity {
                     }
                     startService();
                 });
+
+        // Storage permission launcher for Android 6-10
+        storagePermissionLauncher =
+                registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), permissions -> {
+                    boolean allGranted = true;
+                    for (Boolean granted : permissions.values()) {
+                        if (!granted) {
+                            allGranted = false;
+                            break;
+                        }
+                    }
+                    if (allGranted) {
+                        Toast.makeText(this, "Storage permissions granted", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Storage permissions not granted. Some features may not work.", Toast.LENGTH_LONG).show();
+                    }
+                });
+
+        // Request storage permissions on startup for Android 6-10
+        requestStoragePermissionsIfNeeded();
     }
 
     @Override
@@ -167,5 +191,35 @@ public class MainActivity extends AppCompatActivity {
     public void stopServiceBtn(View view) {
         Intent serviceIntent = new Intent(this, Service.class);
         stopService(serviceIntent);
+    }
+
+    private void requestStoragePermissionsIfNeeded() {
+        // Storage permissions are only needed for Android 6-10
+        // Android 11+ uses different permission model
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return;
+        }
+
+        // Check which permissions need to be requested
+        java.util.List<String> permissionsToRequest = new java.util.ArrayList<>();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android 6-10: Check READ_EXTERNAL_STORAGE
+            if (ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(READ_EXTERNAL_STORAGE);
+            }
+
+            // Android 6-9: Check WRITE_EXTERNAL_STORAGE (not needed on Android 10+)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+                    ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE)
+                            != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(WRITE_EXTERNAL_STORAGE);
+            }
+        }
+
+        if (!permissionsToRequest.isEmpty()) {
+            storagePermissionLauncher.launch(permissionsToRequest.toArray(new String[0]));
+        }
     }
 }
