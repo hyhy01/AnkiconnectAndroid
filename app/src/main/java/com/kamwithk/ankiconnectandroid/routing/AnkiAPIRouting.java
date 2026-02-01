@@ -9,6 +9,7 @@ import com.kamwithk.ankiconnectandroid.ankidroid_api.DeckAPI;
 import com.kamwithk.ankiconnectandroid.ankidroid_api.IntegratedAPI;
 import com.kamwithk.ankiconnectandroid.ankidroid_api.MediaAPI;
 import com.kamwithk.ankiconnectandroid.ankidroid_api.ModelAPI;
+import com.kamwithk.ankiconnectandroid.ankidroid_api.NoteAPI;
 import com.kamwithk.ankiconnectandroid.request_parsers.NoteRequest;
 import com.kamwithk.ankiconnectandroid.request_parsers.Parser;
 import com.kamwithk.ankiconnectandroid.request_parsers.MediaRequest;
@@ -41,6 +42,7 @@ public class AnkiAPIRouting {
     }
 
     private String findRoute(JsonObject raw_json) throws Exception {
+        Log.i("AnkiConnectAndroid", "routing: "+Parser.get_action(raw_json));
         switch (Parser.get_action(raw_json)) {
             case "version":
                 return version();
@@ -70,6 +72,8 @@ public class AnkiAPIRouting {
                 return storeMediaFile(raw_json);
             case "notesInfo":
                 return notesInfo(raw_json);
+            case "requestPermission":
+                return requestPermission(raw_json);
             case "multi":
                 JsonArray actions = Parser.getMultiActions(raw_json);
                 JsonArray results = new JsonArray();
@@ -85,7 +89,7 @@ public class AnkiAPIRouting {
 
                 return Parser.gson.toJson(results);
             default:
-                return default_version();
+                return Parser.gson.toJson(default_version());
         }
     }
     /* taken from anki-connect's web.py: format_success_reply */
@@ -104,7 +108,7 @@ public class AnkiAPIRouting {
         try {
             int version = Parser.get_version(raw_json, 4);
             String response = formatSuccessReply(JsonParser.parseString(findRoute(raw_json)), version).toString();
-            Log.d("AnkiConnectAndroid", "response json: " + response);
+            Log.i("AnkiConnectAndroid", "response json: " + response);
             return returnResponse(response);
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
@@ -231,5 +235,12 @@ public class AnkiAPIRouting {
     private String notesInfo(JsonObject raw_json) throws Exception {
         ArrayList<Long> noteIds = Parser.getNoteIds(raw_json);
         return Parser.gson.toJson(integratedAPI.noteAPI.notesInfo(noteIds));
+    }
+    private String requestPermission(JsonObject raw_json) throws Exception {
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("permission","granted");
+        fields.put("requireApiKey",false);
+        fields.put("version",6);
+        return Parser.gson.toJson(fields);
     }
 }

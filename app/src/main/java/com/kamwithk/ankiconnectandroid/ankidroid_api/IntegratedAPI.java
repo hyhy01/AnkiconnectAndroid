@@ -263,9 +263,9 @@ public class IntegratedAPI {
         Long deck_id = deckAPI.getDeckID(deck_name);
         Long model_id = modelAPI.getModelID(model_name, data.size());
         Long note_id = noteAPI.addNote(data, deck_id, model_id, tags);
-
+        String word=data.get("VocabKanji");
         if (note_id != null) {
-            new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context, "Card added", Toast.LENGTH_SHORT).show());
+            new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context, "Card added: "+word, Toast.LENGTH_SHORT).show());
             return note_id;
         } else {
             new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context, "Failed to add card", Toast.LENGTH_SHORT).show());

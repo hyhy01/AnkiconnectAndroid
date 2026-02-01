@@ -28,7 +28,7 @@ public class APIHandler {
 
             return forvoAPIRouting.getAudioHandleError(parameters.get("term"), parameters.get("expression"), reading);
         } else {
-            Log.d("AnkiConnectAndroid", "received json: " + json_string);
+            Log.i("AnkiConnectAndroid", "received json: " + json_string);
             JsonObject raw_json = Parser.parse(json_string);
             return ankiAPIRouting.findRouteHandleError(raw_json);
         }
