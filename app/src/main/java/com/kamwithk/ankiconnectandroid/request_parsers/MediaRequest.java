@@ -3,6 +3,7 @@ package com.kamwithk.ankiconnectandroid.request_parsers;
 import android.util.Base64;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -10,7 +11,6 @@ import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Simple class that encodes the media passed into an addNote, updateNoteFields, etc request.
@@ -21,8 +21,8 @@ public class MediaRequest {
     private final String filename;
     private final ArrayList<String> fields;
 
-    private Optional<byte[]> data = Optional.empty();
-    private Optional<String> url = Optional.empty();
+    private byte[] data = null;
+    private String url = null;
 
     public enum MediaType {
         AUDIO,
@@ -39,7 +39,7 @@ public class MediaRequest {
     public MediaType getMediaType() {
         return mediaType;
     }
-    
+
     public String getFilename() {
         return filename;
     }
@@ -48,18 +48,21 @@ public class MediaRequest {
         return fields;
     }
 
-    public Optional<byte[]> getData() {
+    @Nullable
+    public byte[] getData() {
         return data;
     }
 
     public void setData(byte[] data) {
-        this.data = Optional.of(data);
+        this.data = data;
     }
 
     public void setUrl(String url) {
-        this.url = Optional.of(url);
+        this.url = url;
     }
-    public Optional<String> getUrl() {
+
+    @Nullable
+    public String getUrl() {
         return url;
     }
 

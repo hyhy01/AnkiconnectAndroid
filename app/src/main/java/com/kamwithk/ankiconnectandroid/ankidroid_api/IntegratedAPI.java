@@ -283,13 +283,14 @@ public class IntegratedAPI {
     public void addMedia(Map<String, String> noteValues, List<MediaRequest> mediaRequests) throws Exception {
         for (MediaRequest media : mediaRequests) {
             // mediaAPI.storeMediaFile() doesn't store as the passed in filename, need to use the returned one
-            Optional<byte[]> data = media.getData();
-            Optional<String> url = media.getUrl();
+            byte[] data = media.getData();
+            String url = media.getUrl();
             String stored_filename;
-            if (data.isPresent()) {
-                stored_filename = mediaAPI.storeMediaFile(media.getFilename(), data.get());
-            } else if (url.isPresent()) {
-                stored_filename = mediaAPI.downloadAndStoreBinaryFile(media.getFilename(), url.get());
+
+            if (data != null) {
+                stored_filename = mediaAPI.storeMediaFile(media.getFilename(), data);
+            } else if (url != null) {
+                stored_filename = mediaAPI.downloadAndStoreBinaryFile(media.getFilename(), url);
             } else {
                 throw new Exception("You must provide a \"data\" or \"url\" field. Note that \"path\" is currently not supported on AnkiConnectAndroid.");
             }

@@ -47,7 +47,8 @@ public class NoteAPI {
         String[] fields = new String[allFieldNames.length];
 
         for (int i = 0; i < allFieldNames.length; i++) {
-            fields[i] = data.getOrDefault(allFieldNames[i], "");
+            String value = data.get(allFieldNames[i]);
+            fields[i] = value != null ? value : "";
         }
 
         return api.addNote(model_id, deck_id, fields, tags);
@@ -211,7 +212,7 @@ public class NoteAPI {
             return null;
         }
 
-        try (cursor) {
+        try {
             while (cursor.moveToNext()) {
 
                 int idIdx = cursor.getColumnIndexOrThrow(FlashCardsContract.Note._ID);
@@ -248,6 +249,8 @@ public class NoteAPI {
                 NoteInfo noteInfo = new NoteInfo(id, model.getModelName(), tags, fields);
                 notesInfoList.add(noteInfo);
             }
+        } finally {
+            cursor.close();
         }
         return notesInfoList;
     }
