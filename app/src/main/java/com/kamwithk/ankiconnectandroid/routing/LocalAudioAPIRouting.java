@@ -29,9 +29,6 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -86,16 +83,16 @@ public class LocalAudioAPIRouting {
         final String preferredStorageDevicePath = sharedPreferences.getString("storage_location", "");
         final String preferredDirectoryPath = sharedPreferences.getString("storage_dir_path", "");
 
-        Path preferredPath = Paths.get(preferredStorageDevicePath, preferredDirectoryPath, "android.db");
+        File preferredPath = new File(preferredStorageDevicePath, preferredDirectoryPath + File.separator + "android.db");
 
         // If the preferences point to a file store that no longer is available
         // Attempt the default externalFilesDir set by the OS.
-        if (!Files.isReadable(preferredPath)){
-            preferredPath = Paths.get(externalFilesDir.getAbsolutePath(), "android.db");
+        if (!preferredPath.canRead()){
+            preferredPath = new File(externalFilesDir, "android.db");
         }
 
         EntriesDatabase db = Room.databaseBuilder(context,
-                EntriesDatabase.class, preferredPath.toString()).build();
+                EntriesDatabase.class, preferredPath.getAbsolutePath()).build();
         return db;
     }
 
