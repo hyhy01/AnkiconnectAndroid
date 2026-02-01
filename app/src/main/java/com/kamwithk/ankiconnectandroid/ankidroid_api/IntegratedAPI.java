@@ -163,7 +163,7 @@ public class IntegratedAPI {
     private LinkedHashSet<Long> findChecksumsInQuery(Cursor cursor, boolean isDuplicateScopeDeck, Set<Long> deckIds) {
         LinkedHashSet<Long> queryChecksums = new LinkedHashSet<>();
 
-        try (cursor) {
+        try {
             while (cursor.moveToNext()) {
                 // Build list of CSUM (queryChecksums)
                 // If an entry in queryChecksums is in checksums, then we have a duplicate
@@ -199,7 +199,7 @@ public class IntegratedAPI {
         );
 
         if(cardCursor != null) {
-            try (cardCursor) {
+            try {
                 while(cardCursor.moveToNext()) {
                     int didIdx = cardCursor.getColumnIndexOrThrow(FlashCardsContract.Card.DECK_ID);
                     long did = cardCursor.getLong(didIdx);
@@ -208,6 +208,8 @@ public class IntegratedAPI {
                         return true;
                     }
                 }
+            } finally {
+                cardCursor.close();
             }
         }
 

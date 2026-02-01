@@ -83,13 +83,23 @@ public class LocalAudioAPIRouting {
         final String preferredStorageDevicePath = sharedPreferences.getString("storage_location", "");
         final String preferredDirectoryPath = sharedPreferences.getString("storage_dir_path", "");
 
-        File preferredPath = new File(preferredStorageDevicePath, preferredDirectoryPath + File.separator + "android.db");
+        File preferredPath;
 
-        // If the preferences point to a file store that no longer is available
-        // Attempt the default externalFilesDir set by the OS.
-        if (!preferredPath.canRead()){
-            preferredPath = new File(externalFilesDir, "android.db");
+        // Only use custom path if both storage location and directory path are set
+        if (!preferredStorageDevicePath.isEmpty() && !preferredDirectoryPath.isEmpty()) {
+            File storageDir = new File(preferredStorageDevicePath, preferredDirectoryPath);
+            preferredPath = new File(storageDir, "android.db");
+
+            // If the custom path is readable, use it
+            if (preferredPath.canRead()) {
+                EntriesDatabase db = Room.databaseBuilder(context,
+                        EntriesDatabase.class, preferredPath.getAbsolutePath()).build();
+                return db;
+            }
         }
+
+        // Fall back to default externalFilesDir
+        preferredPath = new File(externalFilesDir, "android.db");
 
         EntriesDatabase db = Room.databaseBuilder(context,
                 EntriesDatabase.class, preferredPath.getAbsolutePath()).build();

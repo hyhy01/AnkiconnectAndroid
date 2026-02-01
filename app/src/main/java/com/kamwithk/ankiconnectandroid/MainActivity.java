@@ -68,9 +68,14 @@ public class MainActivity extends AppCompatActivity {
 
         IntegratedAPI.authenticate(this);
 
-        NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, "Ankiconnect Android", NotificationManager.IMPORTANCE_DEFAULT);
-        notificationManager = getSystemService(NotificationManager.class);
-        notificationManager.createNotificationChannel(notificationChannel);
+        // NotificationChannel is only required on Android 8.0 (API 26) and above
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, "Ankiconnect Android", NotificationManager.IMPORTANCE_DEFAULT);
+            notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(notificationChannel);
+        } else {
+            notificationManager = getSystemService(NotificationManager.class);
+        }
 
         // this cannot be put inside attemptGrantNotifyPermissions, because it is called by
         // a onClickListener and crashes the app: https://stackoverflow.com/a/67582633
