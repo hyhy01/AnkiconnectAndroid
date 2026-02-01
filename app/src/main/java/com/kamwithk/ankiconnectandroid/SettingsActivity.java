@@ -2,6 +2,7 @@ package com.kamwithk.ankiconnectandroid;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.LayoutInflater;
@@ -72,12 +73,17 @@ public class SettingsActivity extends AppCompatActivity {
 
             preference = findPreference("access_manage_all_files_perms");
             if (preference != null) {
-                // custom handler of preference: open permissions screen
-                preference.setOnPreferenceClickListener(p -> {
-                    Intent permIntent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                    startActivity(permIntent);
-                    return true;
-                });
+                // Hide this preference on Android 10 and below (MANAGE_ALL_FILES_ACCESS_PERMISSION is Android 11+ only)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    // custom handler of preference: open permissions screen
+                    preference.setOnPreferenceClickListener(p -> {
+                        Intent permIntent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                        startActivity(permIntent);
+                        return true;
+                    });
+                } else {
+                    preference.setVisible(false);
+                }
 
             }
 
